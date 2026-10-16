@@ -1,0 +1,25 @@
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# IDE / Editor configs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Antigravity / Agent state
+.agents/
+.gemini/
+
+# Logs
+*.log

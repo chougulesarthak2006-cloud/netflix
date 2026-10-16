@@ -1,0 +1,66 @@
+version: "3"
+
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: netflix_hadoop_namenode
+    restart: always
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    environment:
+      - CLUSTER_NAME=netflix_cluster
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+      - ../dataset:/dataset
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: netflix_hadoop_datanode
+    restart: always
+    ports:
+      - "9864:9864"
+    environment:
+      - SERVICE_PRECONDITION=namenode:9000
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+    depends_on:
+      - namenode
+
+  hive-server:
+    image: bde2020/hive:2.3.2-postgresql-metastore
+    container_name: netflix_hive_server
+    restart: always
+    environment:
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionURL=jdbc:postgresql://hive-metastore-postgresql:5432/metastore
+      - SERVICE_PRECONDITION=namenode:9000 datanode:9864 hive-metastore-postgresql:5432
+    ports:
+      - "10000:10000"
+      - "10002:10002"
+    volumes:
+      - ../hive:/hive_scripts
+      - ../dataset:/dataset
+    depends_on:
+      - namenode
+      - datanode
+      - hive-metastore-postgresql
+
+  hive-metastore-postgresql:
+    image: bde2020/hive-metastore-postgresql:2.3.0
+    container_name: netflix_hive_metastore_db
+    restart: always
+    environment:
+      - POSTGRES_DB=metastore
+      - POSTGRES_USER=hive
+      - POSTGRES_PASSWORD=hive
+    volumes:
+      - hive_metastore_data:/var/lib/postgresql/data
+
+volumes:
+  hadoop_namenode:
+  hadoop_datanode:
+  hive_metastore_data:

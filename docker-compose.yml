@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  # ============================================================================
+  # Netflix Big Data Web Platform & Analytics Dashboard
+  # ============================================================================
+  netflix-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: netflix-bigdata-web:latest
+    container_name: netflix_bigdata_web
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+    volumes:
+      - ./results:/app/results
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/diagnostics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
