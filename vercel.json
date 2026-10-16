@@ -4,6 +4,7 @@
     "app": {
       "root": ".",
       "runtime": "python",
+      "entrypoint": "api/index.py",
       "bindings": [
         {
           "type": "service",
@@ -15,7 +16,8 @@
     },
     "visualization": {
       "root": "visualization",
-      "runtime": "python"
+      "runtime": "python",
+      "entrypoint": "api/index.py"
     }
   },
   "rewrites": [
