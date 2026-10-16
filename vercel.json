@@ -1,6 +1,29 @@
 {
-  "version": 2,
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": ".",
+      "runtime": "python",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "visualization",
+          "format": "url",
+          "env": "VISUALIZATION_SERVICE_URL"
+        }
+      ]
+    },
+    "visualization": {
+      "root": "visualization",
+      "runtime": "python"
+    }
+  },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.py" }
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    }
   ]
 }

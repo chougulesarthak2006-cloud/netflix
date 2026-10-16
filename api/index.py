@@ -12,7 +12,11 @@ import csv
 import json
 import sqlite3
 import time
+import urllib.request
 from http.server import BaseHTTPRequestHandler
+
+# Vercel service binding for internal visualization service
+VISUALIZATION_SERVICE_URL = os.environ.get("VISUALIZATION_SERVICE_URL")
 
 # Locate dataset in various environments
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -329,7 +333,13 @@ class handler(BaseHTTPRequestHandler):
                 "hadoop_home": "(Cloud Serverless Environment)",
                 "hdfs_target_uri": "hdfs://localhost:9000",
                 "hdfs_target_dir": "/user/hadoop/netflix/",
-                "diagnostics_message": "Vercel Cloud Serverless Active. Dual-Engine Local Demo Simulation enabled."
+                "visualization_service_bound": bool(VISUALIZATION_SERVICE_URL),
+                "visualization_service_url": VISUALIZATION_SERVICE_URL or "Not bound (Internal fallback active)",
+                "diagnostics_message": (
+                    f"Vercel Cloud Services Active. Visualization service bound at: {VISUALIZATION_SERVICE_URL}"
+                    if VISUALIZATION_SERVICE_URL
+                    else "Vercel Cloud Serverless Active. Dual-Engine Local Demo Simulation enabled."
+                )
             })
             return
 
@@ -365,6 +375,19 @@ class handler(BaseHTTPRequestHandler):
             return
 
         elif clean_path == "/api/charts":
+            if VISUALIZATION_SERVICE_URL:
+                try:
+                    target_url = f"{VISUALIZATION_SERVICE_URL.rstrip('/')}/api/charts"
+                    req = urllib.request.Request(target_url, headers={"User-Agent": "Vercel-App-Service"})
+                    with urllib.request.urlopen(req, timeout=3) as resp:
+                        if resp.status == 200:
+                            data = json.loads(resp.read().decode('utf-8'))
+                            self.send_json(data)
+                            return
+                except Exception as e:
+                    print(f"Error querying bound visualization service: {e}")
+
+            # Fallback to local charts metadata
             self.send_json(CHARTS_METADATA)
             return
 
