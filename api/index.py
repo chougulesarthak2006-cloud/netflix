@@ -407,7 +407,74 @@ class handler(BaseHTTPRequestHandler):
             self.send_json({"header": header, "rows": preview})
             return
 
-        self.send_json({"error": "Endpoint not found"}, status=404)
+        # Serve static assets (index.html, styles.css, app.js, results/charts/...)
+        self.serve_static(clean_path)
+
+    def serve_static(self, rel_path):
+        clean = rel_path.lstrip("/").replace("\\", "/")
+        if not clean or clean == "index.html":
+            clean = "index.html"
+
+        candidates = [
+            os.path.join(CURRENT_DIR, clean),
+            os.path.join(CURRENT_DIR, "..", "public", clean),
+            os.path.join(CURRENT_DIR, "..", "web", clean),
+            os.path.join(CURRENT_DIR, "..", clean),
+            os.path.join(os.getcwd(), "public", clean),
+            os.path.join(os.getcwd(), "web", clean),
+            os.path.join(os.getcwd(), clean),
+        ]
+
+        target = None
+        for c in candidates:
+            if os.path.isfile(c):
+                target = c
+                break
+
+        if not target:
+            # Fallback to index.html for SPA routes
+            idx_candidates = [
+                os.path.join(CURRENT_DIR, "index.html"),
+                os.path.join(CURRENT_DIR, "..", "public", "index.html"),
+                os.path.join(CURRENT_DIR, "..", "web", "index.html"),
+                os.path.join(os.getcwd(), "public", "index.html"),
+            ]
+            for idx in idx_candidates:
+                if os.path.isfile(idx):
+                    target = idx
+                    break
+
+        if not target:
+            self.send_json({"error": f"File not found: {clean}"}, status=404)
+            return
+
+        ext = os.path.splitext(target)[1].lower()
+        mime_types = {
+            ".html": "text/html; charset=utf-8",
+            ".css": "text/css; charset=utf-8",
+            ".js": "application/javascript; charset=utf-8",
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".svg": "image/svg+xml",
+            ".json": "application/json",
+            ".ico": "image/x-icon",
+            ".csv": "text/plain; charset=utf-8",
+        }
+        content_type = mime_types.get(ext, "application/octet-stream")
+
+        try:
+            with open(target, "rb") as f:
+                content = f.read()
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(content)))
+            self.send_header("Cache-Control", "public, max-age=3600")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(content)
+        except Exception as e:
+            self.send_json({"error": f"Error serving static file: {str(e)}"}, status=500)
 
     def do_POST(self):
         clean_path = self.path.split("?")[0]

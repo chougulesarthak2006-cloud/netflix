@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix Data Analysis using Hadoop & Hive | Big Data Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+        <div class="header-left">
+            <div class="netflix-logo-badge">
+                <span class="n-logo">N</span>
+            </div>
+            <div class="project-title-meta">
+                <h1 class="main-title">Netflix Big Data Analytics Platform</h1>
+                <p class="subtitle">Distributed Storage & Query Processing using Apache Hadoop, HDFS & Apache Hive</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="mode-indicator-pill" id="headerModePill">
+                <span class="pulse-dot"></span>
+                <span id="currentModeLabel">LOCAL DEMO MODE</span>
+            </div>
+            <div class="system-badge">Academic Micro-Project</div>
+        </div>
+    </header>
+
+    <!-- Tab Navigation Bar -->
+    <nav class="nav-tabs">
+        <button class="nav-btn active" data-tab="engine-tab">
+            <span class="tab-icon">⚙️</span> Engine & Cluster Settings
+        </button>
+        <button class="nav-btn" data-tab="dashboard-tab">
+            <span class="tab-icon">📊</span> Analytics & Charts
+        </button>
+        <button class="nav-btn" data-tab="queries-tab">
+            <span class="tab-icon">⚡</span> HiveQL Query Studio
+        </button>
+        <button class="nav-btn" data-tab="mapreduce-tab">
+            <span class="tab-icon">🔄</span> MapReduce Visualizer
+        </button>
+        <button class="nav-btn" data-tab="architecture-tab">
+            <span class="tab-icon">🏛️</span> HDFS & Architecture
+        </button>
+        <button class="nav-btn" data-tab="viva-tab">
+            <span class="tab-icon">🎓</span> Viva Voce Coach
+        </button>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="app-container">
+        
+        <!-- ============================================================== -->
+        <!-- TAB 1: ENGINE & CLUSTER SETTINGS (Matches User Screenshots!)   -->
+        <!-- ============================================================== -->
+        <section id="engine-tab" class="tab-content active">
+            <div class="section-header-block">
+                <h2 class="section-title">Processing Engine & Hadoop Cluster Settings</h2>
+                <p class="section-desc">Configure the active MapReduce processing engine and review Hadoop cluster connectivity.</p>
+            </div>
+
+            <!-- Select Active Processing Mode Cards -->
+            <div class="settings-card">
+                <div class="card-subtitle-row">
+                    <span class="card-icon">📚</span>
+                    <h3 class="card-subtitle">Select Active Processing Mode</h3>
+                </div>
+
+                <div class="mode-selection-grid">
+                    <!-- Card 1: Local Demo Mode -->
+                    <div class="mode-card active-mode" id="modeCardLocal" onclick="switchMode('local')">
+                        <div class="mode-card-header">
+                            <h4 class="mode-title">Local Demo Mode</h4>
+                            <span class="mode-badge active-badge" id="badgeLocal">ACTIVE</span>
+                        </div>
+                        <p class="mode-description">
+                            Executes the exact Mapper and Reducer aggregation algorithms in Python. Recommended for college presentation machines without pre-installed Hadoop.
+                        </p>
+                    </div>
+
+                    <!-- Card 2: Hadoop Cluster Mode -->
+                    <div class="mode-card" id="modeCardCluster" onclick="switchMode('cluster')">
+                        <div class="mode-card-header">
+                            <h4 class="mode-title">Hadoop Cluster Mode</h4>
+                            <span class="mode-badge inactive-badge" id="badgeCluster">INACTIVE</span>
+                        </div>
+                        <p class="mode-description">
+                            Transfers data to HDFS and submits distributed MapReduce jobs using Hadoop Streaming jar. Connects to Apache Hive and HDFS cluster daemons.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hadoop & HDFS Diagnostics -->
+            <div class="settings-card diagnostics-card">
+                <div class="card-subtitle-row">
+                    <span class="card-icon">🖧</span>
+                    <h3 class="card-subtitle">Hadoop & HDFS Diagnostics</h3>
+                    <button class="refresh-btn" onclick="fetchDiagnostics()">🔄 Refresh Probes</button>
+                </div>
+
+                <div class="diagnostics-table">
+                    <div class="diag-row">
+                        <span class="diag-label">Hadoop Binaries Detected:</span>
+                        <span class="diag-value" id="diagHadoopBin">
+                            <span class="status-warning" id="diagHadoopBinText">Probing...</span>
+                        </span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="diag-label">Hadoop Diagnostics:</span>
+                        <span class="diag-value text-muted" id="diagMessage">Checking system environment paths...</span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="diag-label">HDFS Target URI:</span>
+                        <span class="diag-value code-font text-blue" id="diagHdfsUri">hdfs://localhost:9000</span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="diag-label">Target HDFS Directory:</span>
+                        <span class="diag-value code-font text-cyan">/user/hadoop/netflix/</span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="diag-label">HADOOP_HOME:</span>
+                        <span class="diag-value code-font" id="diagHadoopHome">(Checking environment)</span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="diag-label">Java Runtime Environment:</span>
+                        <span class="diag-value code-font" id="diagJava">Probing...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Hadoop Terminal Commands (Matches Screenshot 2!) -->
+            <div class="settings-card commands-card">
+                <div class="card-subtitle-row">
+                    <span class="card-icon text-green">>_</span>
+                    <h3 class="card-subtitle">Quick Hadoop Terminal Commands</h3>
+                    <button class="copy-all-btn" onclick="copyTerminalCommands()">📋 Copy Commands</button>
+                </div>
+                <p class="terminal-intro">To run on an actual Hadoop cluster, run these standard commands in your terminal:</p>
+
+                <div class="terminal-box" id="terminalCommandsBox">
+                    <pre><code><span class="cmd-comment"># 1. Create target HDFS input directory</span>
+<span class="cmd-text">hdfs dfs -mkdir -p /netflix/input</span>
+
+<span class="cmd-comment"># 2. Upload Netflix CSV to HDFS block storage</span>
+<span class="cmd-text">hdfs dfs -put dataset/netflix_titles.csv /netflix/input/</span>
+
+<span class="cmd-comment"># 3. Submit distributed MapReduce job using Hadoop Streaming JAR</span>
+<span class="cmd-text">hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+  -files hadoop/mapper.py,hadoop/reducer.py \
+  -mapper "python3 mapper.py" \
+  -reducer "python3 reducer.py" \
+  -input /netflix/input/netflix_titles.csv \
+  -output /netflix/output</span>
+
+<span class="cmd-comment"># 4. View aggregated MapReduce output on HDFS</span>
+<span class="cmd-text">hdfs dfs -cat /netflix/output/part-* | head -n 20</span></code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- TAB 2: ANALYTICS DASHBOARD & CHARTS                            -->
+        <!-- ============================================================== -->
+        <section id="dashboard-tab" class="tab-content">
+            <div class="section-header-block">
+                <h2 class="section-title">Catalog Analytics & Visual Dashboard</h2>
+                <p class="section-desc">Key Performance Indicators and high-resolution visual charts generated from HiveQL query results.</p>
+            </div>
+
+            <!-- KPI Metric Cards Grid -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-title">TOTAL CATALOG TITLES</div>
+                    <div class="kpi-value text-red" id="kpiTotal">6,234</div>
+                    <div class="kpi-subtext">Verified media records</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">FEATURE MOVIES</div>
+                    <div class="kpi-value text-blue" id="kpiMovies">4,265</div>
+                    <div class="kpi-subtext">68.42% of entire catalog</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">EPISODIC TV SHOWS</div>
+                    <div class="kpi-value text-cyan" id="kpiTv">1,969</div>
+                    <div class="kpi-subtext">31.58% of entire catalog</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">PRODUCING NATIONS</div>
+                    <div class="kpi-value text-green" id="kpiCountries">72</div>
+                    <div class="kpi-subtext">Global content reach</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">AVERAGE RUNTIME</div>
+                    <div class="kpi-value text-yellow">99.10 min</div>
+                    <div class="kpi-subtext">Feature movie length</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">PEAK RELEASE YEAR</div>
+                    <div class="kpi-value text-purple">2018</div>
+                    <div class="kpi-subtext">1,063 titles produced</div>
+                </div>
+            </div>
+
+            <!-- Charts Gallery Grid -->
+            <div class="charts-gallery" id="chartsGallery">
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h4>01. Movies vs TV Shows Catalog Breakdown</h4>
+                        <span class="chart-tag">Donut Chart</span>
+                    </div>
+                    <div class="chart-img-container">
+                        <img src="/results/charts/01_movies_vs_tv_shows.png" alt="Movies vs TV Shows" class="chart-img" onclick="openModal(this.src, 'Movies vs TV Shows Breakdown')">
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h4>02. Content Output by Production Year (2000 - 2020)</h4>
+                        <span class="chart-tag">Trend Area Chart</span>
+                    </div>
+                    <div class="chart-img-container">
+                        <img src="/results/charts/02_releases_by_year.png" alt="Releases by Year" class="chart-img" onclick="openModal(this.src, 'Content Output by Release Year')">
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h4>03. Top 10 Content Producing Countries</h4>
+                        <span class="chart-tag">Horizontal Bar Chart</span>
+                    </div>
+                    <div class="chart-img-container">
+                        <img src="/results/charts/03_top_10_countries.png" alt="Top Countries" class="chart-img" onclick="openModal(this.src, 'Top 10 Producing Countries')">
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h4>04. Content Maturity Ratings Distribution</h4>
+                        <span class="chart-tag">Demographics</span>
+                    </div>
+                    <div class="chart-img-container">
+                        <img src="/results/charts/04_ratings_distribution.png" alt="Ratings Distribution" class="chart-img" onclick="openModal(this.src, 'Maturity Ratings Distribution')">
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h4>05. Top 10 Genres (Exploded UDTF Distribution)</h4>
+                        <span class="chart-tag">Genre Analysis</span>
+                    </div>
+                    <div class="chart-img-container">
+                        <img src="/results/charts/05_top_10_genres.png" alt="Top Genres" class="chart-img" onclick="openModal(this.src, 'Top 10 Genres')">
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h4>06. Catalog Ingestion Velocity by Year Added</h4>
+                        <span class="chart-tag">Platform Growth</span>
+                    </div>
+                    <div class="chart-img-container">
+                        <img src="/results/charts/06_titles_added_by_year.png" alt="Titles Added by Year" class="chart-img" onclick="openModal(this.src, 'Catalog Ingestion Velocity')">
+                    </div>
+                </div>
+
+                <div class="chart-card full-width-card">
+                    <div class="chart-card-header">
+                        <h4>Unified Academic Visual Dashboard</h4>
+                        <span class="chart-tag highlight-tag">Summary Dashboard</span>
+                    </div>
+                    <div class="chart-img-container">
+                        <img src="/results/charts/netflix_analysis_dashboard.png" alt="Summary Dashboard" class="chart-img" onclick="openModal(this.src, 'Unified Academic Dashboard')">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- TAB 3: HIVEQL QUERY STUDIO                                     -->
+        <!-- ============================================================== -->
+        <section id="queries-tab" class="tab-content">
+            <div class="section-header-block">
+                <h2 class="section-title">HiveQL Analytical Query Studio</h2>
+                <p class="section-desc">Select and execute any of the 18+ analytical queries in real-time. Review syntax, explanation, and output tables.</p>
+            </div>
+
+            <div class="query-studio-layout">
+                <!-- Query List Sidebar -->
+                <div class="query-sidebar">
+                    <div class="sidebar-header">
+                        <span class="sidebar-title">Select Analytical Query</span>
+                        <span class="badge" id="queryCountBadge">18 Queries</span>
+                    </div>
+                    <div class="query-list" id="queryListContainer">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Query Execution Area -->
+                <div class="query-main-panel">
+                    <div class="query-card-header">
+                        <div>
+                            <span class="query-category-tag" id="activeQueryCategory">Catalog Overview</span>
+                            <h3 class="active-query-title" id="activeQueryTitle">Query 1: Total Titles in Catalog</h3>
+                        </div>
+                        <button class="run-query-btn" id="runQueryBtn" onclick="executeCurrentQuery()">
+                            ▶ Execute Query
+                        </button>
+                    </div>
+
+                    <p class="active-query-explanation" id="activeQueryExplanation">
+                        Calculates total media records cataloged in Netflix data warehouse.
+                    </p>
+
+                    <!-- HiveQL Syntax Box -->
+                    <div class="code-editor-box">
+                        <div class="editor-header">
+                            <span>HiveQL (HQL) Code</span>
+                            <span class="engine-tag" id="execEngineTag">Active Engine: Local SQLite / Hive Simulation</span>
+                        </div>
+                        <pre><code id="activeQuerySql">SELECT COUNT(*) AS total_titles FROM netflix_cleaned;</code></pre>
+                    </div>
+
+                    <!-- Execution Results Area -->
+                    <div class="query-results-area" id="queryResultsArea">
+                        <div class="results-status-bar">
+                            <span id="resultsStatusText">Click "Execute Query" to run analysis.</span>
+                            <span class="execution-time-badge" id="execTimeBadge" style="display:none;">0.00 ms</span>
+                        </div>
+                        <div class="table-responsive" id="tableContainer">
+                            <table class="data-table" id="resultsTable">
+                                <thead>
+                                    <tr id="tableHeadRow"><th>Output will appear here</th></tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    <tr><td class="text-muted">No query executed yet.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- TAB 4: MAPREDUCE VISUALIZER                                    -->
+        <!-- ============================================================== -->
+        <section id="mapreduce-tab" class="tab-content">
+            <div class="section-header-block">
+                <h2 class="section-title">Hadoop MapReduce Stream Visualizer</h2>
+                <p class="section-desc">Understand how Hadoop Streaming executes Map, Shuffle & Sort, and Reduce phases on the Netflix dataset.</p>
+            </div>
+
+            <!-- Job Execution Controls -->
+            <div class="mapreduce-controls-card">
+                <div class="controls-row">
+                    <div>
+                        <label class="control-label">Select MapReduce Job:</label>
+                        <select id="mrJobSelector" class="form-select">
+                            <option value="type">Job 1: Content Type & Release Year Distribution (mapper.py + reducer.py)</option>
+                            <option value="genre">Job 2: Exploded Genre Distribution (mapper_genre.py + reducer_genre.py)</option>
+                        </select>
+                    </div>
+                    <button class="run-mr-btn" onclick="runMapReduceJob()">
+                        🚀 Run MapReduce Pipeline
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pipeline Visual Flow Diagram -->
+            <div class="mr-pipeline-flow">
+                <div class="pipeline-step">
+                    <div class="step-num">1</div>
+                    <div class="step-title">Input Split</div>
+                    <div class="step-desc">netflix_titles.csv (2.41 MB)</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="pipeline-step">
+                    <div class="step-num">2</div>
+                    <div class="step-title">Map Phase</div>
+                    <div class="step-desc" id="mrMapDesc">Emits key-value pairs</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="pipeline-step">
+                    <div class="step-num">3</div>
+                    <div class="step-title">Shuffle & Sort</div>
+                    <div class="step-desc">Partitions & sorts keys</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="pipeline-step">
+                    <div class="step-num">4</div>
+                    <div class="step-title">Reduce Phase</div>
+                    <div class="step-desc" id="mrReduceDesc">Sums frequencies per key</div>
+                </div>
+            </div>
+
+            <!-- Results Output Split -->
+            <div class="mr-results-grid">
+                <div class="mr-output-col">
+                    <h4 class="col-title">Sample Mapper Emitted Pairs (<code class="code-tag">STDIN ➔ STDOUT</code>)</h4>
+                    <div class="terminal-box mr-box">
+                        <pre><code id="mrSampleMapOutput">Run the pipeline above to view live emitted key-value pairs.</code></pre>
+                    </div>
+                </div>
+
+                <div class="mr-output-col">
+                    <h4 class="col-title">Aggregated Reducer Final Output (<code class="code-tag">Key \t Count</code>)</h4>
+                    <div class="terminal-box mr-box">
+                        <pre><code id="mrSampleReduceOutput">Run the pipeline above to view aggregated reducer results.</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- TAB 5: ARCHITECTURE & HDFS EXPLORER                            -->
+        <!-- ============================================================== -->
+        <section id="architecture-tab" class="tab-content">
+            <div class="section-header-block">
+                <h2 class="section-title">HDFS Storage Architecture & ELT Data Pipeline</h2>
+                <p class="section-desc">Detailed architectural breakdown of the Big Data pipeline from local storage to HDFS, Hive, and Reporting.</p>
+            </div>
+
+            <div class="architecture-diagram-card">
+                <div class="card-subtitle-row">
+                    <span class="card-icon">🏗️</span>
+                    <h3 class="card-subtitle">End-to-End System Workflow</h3>
+                </div>
+
+                <div class="flowchart-container">
+                    <div class="flow-stage">
+                        <div class="stage-badge">Stage 1</div>
+                        <h4>Raw CSV Ingestion</h4>
+                        <p>Kaggle Netflix dataset stored on local Linux file system (2.41 MB, 6,234 records).</p>
+                    </div>
+                    <div class="stage-connector">➔</div>
+                    <div class="flow-stage">
+                        <div class="stage-badge">Stage 2</div>
+                        <h4>HDFS Block Storage</h4>
+                        <p>Uploaded via <code>hdfs dfs -put</code> to <code>/user/hadoop/netflix/</code>. Managed across DataNodes in 128 MB blocks.</p>
+                    </div>
+                    <div class="stage-connector">➔</div>
+                    <div class="flow-stage">
+                        <div class="stage-badge">Stage 3</div>
+                        <h4>Hive External Table</h4>
+                        <p>Mapped via <code>OpenCSVSerde</code> (Schema-on-Read). Preserves raw data while handling embedded commas.</p>
+                    </div>
+                    <div class="stage-connector">➔</div>
+                    <div class="flow-stage">
+                        <div class="stage-badge">Stage 4</div>
+                        <h4>Data Cleansing & ORC</h4>
+                        <p>ELT pipeline transforms nulls, splits compound duration, and stores in managed ORC table with Snappy compression.</p>
+                    </div>
+                    <div class="stage-connector">➔</div>
+                    <div class="flow-stage">
+                        <div class="stage-badge">Stage 5</div>
+                        <h4>Analytical HiveQL</h4>
+                        <p>18+ distributed queries executed over Tez/MapReduce execution DAGs to yield insights.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HDFS Block & Replication Explainer -->
+            <div class="settings-card">
+                <div class="card-subtitle-row">
+                    <span class="card-icon">📦</span>
+                    <h3 class="card-subtitle">HDFS File & Block Mapping Mechanics</h3>
+                </div>
+                <div class="hdfs-metrics-row">
+                    <div class="hdfs-metric-box">
+                        <span class="hm-label">File Name:</span>
+                        <span class="hm-val">netflix_titles.csv</span>
+                    </div>
+                    <div class="hdfs-metric-box">
+                        <span class="hm-label">Total Size:</span>
+                        <span class="hm-val">2,410,660 bytes (~2.30 MB)</span>
+                    </div>
+                    <div class="hdfs-metric-box">
+                        <span class="hm-label">Default Block Size:</span>
+                        <span class="hm-val">128 MB</span>
+                    </div>
+                    <div class="hdfs-metric-box">
+                        <span class="hm-label">Required HDFS Blocks:</span>
+                        <span class="hm-val">1 Block (blk_1073741825)</span>
+                    </div>
+                    <div class="hdfs-metric-box">
+                        <span class="hm-label">Cluster Replication:</span>
+                        <span class="hm-val">3x (Prod) / 1x (Pseudo)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- TAB 6: VIVA VOCE COACH (35 Questions & Answers)                -->
+        <!-- ============================================================== -->
+        <section id="viva-tab" class="tab-content">
+            <div class="section-header-block">
+                <h2 class="section-title">Viva Voce Exam Trainer & Flashcards</h2>
+                <p class="section-desc">Searchable collection of 35 comprehensive viva questions and simple answers for viva defense.</p>
+            </div>
+
+            <div class="viva-search-bar">
+                <input type="text" id="vivaSearchInput" placeholder="🔍 Search viva questions (e.g., NameNode, Hive vs MySQL, OpenCSVSerde, ORC)..." oninput="filterVivaQuestions()">
+                <div class="viva-category-filters" id="vivaFilters">
+                    <button class="filter-btn active" onclick="filterCategory('All')">All (35)</button>
+                    <button class="filter-btn" onclick="filterCategory('Fundamentals')">Fundamentals</button>
+                    <button class="filter-btn" onclick="filterCategory('HDFS')">HDFS</button>
+                    <button class="filter-btn" onclick="filterCategory('Hive')">Hive</button>
+                    <button class="filter-btn" onclick="filterCategory('MapReduce')">MapReduce</button>
+                    <button class="filter-btn" onclick="filterCategory('Data Cleaning')">Data Cleaning</button>
+                </div>
+            </div>
+
+            <div class="viva-grid" id="vivaGridContainer">
+                <!-- Dynamically loaded viva questions -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal for High-Resolution Chart Preview -->
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <span class="modal-close">&times;</span>
+        <img class="modal-content" id="modalImg">
+        <div id="modalCaption" class="modal-caption"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <p>Netflix Movies and TV Shows Data Analysis using Hadoop & Hive | Big Data Academic Micro-Project</p>
+        <p class="footer-sub">Supports both <strong>Local Demo Mode</strong> (standalone) & <strong>Hadoop Cluster Mode</strong> (distributed HDFS & HiveQL)</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
